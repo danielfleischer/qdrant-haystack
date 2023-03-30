@@ -78,6 +78,11 @@ class QdrantDocumentStore(BaseDocumentStore):
             index, embedding_dim, hnsw_config, recreate_index, similarity
         )
 
+        self.url = url
+        self.port = port
+        self.host = host
+        self.timeout = timeout
+
         self.embedding_dim = embedding_dim
         self.content_field = content_field
         self.name_field = name_field
@@ -525,4 +530,14 @@ class QdrantDocumentStore(BaseDocumentStore):
                 distance=distance,
             ),
             hnsw_config=hnsw_config,
+        )
+
+    def _refresh_client(self):
+        """Reconnect to client to prevent dropoff in long sessions."""
+
+        self.client = qdrant_client.QdrantClient(
+            url=self.url,
+            port=self.port,
+            timeout=self.timeout,
+            host=self.host,
         )
