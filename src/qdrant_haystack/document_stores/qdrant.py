@@ -343,7 +343,13 @@ class QdrantDocumentStore(BaseDocumentStore):
         with tqdm(
             total=document_count, position=0, unit=" Docs", desc="Updating embeddings"
         ) as progress_bar:
-            for document_batch in get_batches_from_generator(doc_generator, batch_size):
+            for i, document_batch in enumerate(
+                get_batches_from_generator(doc_generator, batch_size)
+            ):
+
+                if i % 10 == 0:
+                    self._refresh_client()
+
                 embeddings = retriever.embed_documents(document_batch)
                 self._validate_embeddings_shape(
                     embeddings=embeddings,
@@ -533,7 +539,11 @@ class QdrantDocumentStore(BaseDocumentStore):
         )
 
     def _refresh_client(self):
-        """Reconnect to client to prevent dropoff in long sessions."""
+        """
+        Reconnect to client to prevent dropoff in long sessions.
+
+        Return None.
+        """
 
         self.client = qdrant_client.QdrantClient(
             url=self.url,
